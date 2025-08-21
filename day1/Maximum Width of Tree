@@ -13,46 +13,40 @@
  *     }
  * }
  */
-import java.util.*;
-class Pair<K, V> {
-    private K key;
-    private V value;
-    public Pair(K key, V value) { this.key = key; this.value = value; }
-    public K getKey() { return key; }
-    public V getValue() { return value; }
-}
 class Solution {
+    static class pair{
+        TreeNode node;
+        long idx;
+
+        pair(TreeNode node, long idx){
+            this.node = node;
+            this.idx = idx;
+        }
+
+    }
     public int widthOfBinaryTree(TreeNode root) {
-        if (root == null) return 0;
-        
-        int maxWidth = 0;
-        Queue<Pair<TreeNode, Long>> q = new LinkedList<>();
-        q.offer(new Pair<>(root, 0L));  
-
-        while (!q.isEmpty()) {
+        if(root == null){
+            return 0;
+        }
+        Queue<pair> q = new LinkedList<>();
+        q.offer(new pair(root, 0));
+        long max = 0;
+        while(!q.isEmpty()){
+            long first = q.peek().idx;
+            long last = ((LinkedList<pair>) q).getLast().idx;
             int size = q.size();
-            long minIndex = q.peek().getValue();
-            long first = 0, last = 0;
-
-            for (int i = 0; i < size; i++) {
-                Pair<TreeNode, Long> p = q.poll();
-                TreeNode node = p.getKey();
-                long idx = p.getValue() - minIndex; 
-
-                if (i == 0) first = idx;
-                if (i == size - 1) last = idx;
-
-                if (node.left != null) {
-                    q.offer(new Pair<>(node.left, 2 * idx));
+            max = Math.max(max, last - first + 1);
+            for(int i = 0; i < size; i++){
+                pair currNode = q.poll();
+                long index = currNode.idx;
+                if(currNode.node.left != null){
+                    q.offer(new pair(currNode.node.left, 2 * index + 1));
                 }
-                if (node.right != null) {
-                    q.offer(new Pair<>(node.right, 2 * idx + 1));
+                if(currNode.node.right != null){
+                    q.offer(new pair(currNode.node.right, 2 * index + 2));
                 }
             }
-            maxWidth = Math.max(maxWidth, (int)(last - first + 1));
         }
-        return maxWidth;
+        return (int)max;
     }
 }
-
-
