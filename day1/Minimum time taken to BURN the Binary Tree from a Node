@@ -13,47 +13,70 @@
  *     }
  * }
  */
-
-import java.util.*;
-
 class Solution {
-    public int amountOfTime(TreeNode root, int start) {
-
-        Map<Integer, List<Integer>> graph = new HashMap<>();
-        buildGraph(root, null, graph);
-
-        Queue<Integer> q = new LinkedList<>();
-        Set<Integer> visited = new HashSet<>();
-        q.offer(start);
-        visited.add(start);
-
-        int minutes = -1; // starts at -1 because the first pop is minute 0
-        while (!q.isEmpty()) {
-            int size = q.size();
-            minutes++;
-            for (int i = 0; i < size; i++) {
-                int node = q.poll();
-                for (int nei : graph.getOrDefault(node, new ArrayList<>())) {
-                    if (!visited.contains(nei)) {
-                        visited.add(nei);
-                        q.offer(nei);
-                    }
-                }
+    public void markParent(TreeNode root, Map<TreeNode, TreeNode> parentTrack){
+       
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root);
+        while(!q.isEmpty()){
+            TreeNode curr = q.poll();
+            if(curr == null){
+                return;
+            }
+            if(curr.left != null){
+                parentTrack.put(curr.left, curr);
+                q.offer(curr.left);
+            }
+            if(curr.right != null){
+                parentTrack.put(curr.right, curr);
+                q.offer(curr.right);
             }
         }
-        return minutes;
     }
-
-    private void buildGraph(TreeNode node, TreeNode parent, Map<Integer, List<Integer>> graph) {
-        if (node == null) return;
-
-        graph.putIfAbsent(node.val, new ArrayList<>());
-        if (parent != null) {
-            graph.get(node.val).add(parent.val);
-            graph.get(parent.val).add(node.val);
+    public TreeNode inorder(TreeNode root, int start){
+        if(root == null){
+            return null;
         }
-
-        buildGraph(node.left, node, graph);
-        buildGraph(node.right, node, graph);
+        if(root.val == start){
+            return root;
+        }
+        TreeNode left = inorder(root.left, start);
+        if(left != null) return left;
+        return inorder(root.right, start);
+    }
+    public int amountOfTime(TreeNode root, int start) {
+        Map<TreeNode, TreeNode> parentTrack = new HashMap<>();
+        markParent(root, parentTrack);
+        Queue<TreeNode> q = new LinkedList<>();
+        Map<TreeNode, Boolean> visited = new HashMap<>();
+        //  first find infected element using any traversal method
+        TreeNode infected = inorder(root, start);
+        q.offer(infected);
+        visited.put(infected, true);
+        int time = 0;
+        while(!q.isEmpty()){
+            int size = q.size();
+            time++;
+            for(int i = 0; i < size; i++){
+                TreeNode curr = q.poll();
+                if(curr == null){
+                    break;
+                }
+                if(curr.left != null && visited.get(curr.left) == null){
+                    q.offer(curr.left);
+                    visited.put(curr.left, true);
+                }
+                if(curr.right != null && visited.get(curr.right) == null){
+                    q.offer(curr.right);
+                    visited.put(curr.right, true);
+                }
+                if(parentTrack.get(curr) != null && visited.get(parentTrack.get(curr)) == null){
+                    q.offer(parentTrack.get(curr));
+                    visited.put(parentTrack.get(curr), true);
+                }
+            }
+            
+        }
+        return time - 1;
     }
 }
